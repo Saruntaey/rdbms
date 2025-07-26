@@ -39,7 +39,7 @@ void stack_reset() {
 
 lex_data cyylex() {
 	int token_code = yylex();
-	lex_data d = {.token_code = (math_exp_type) token_code, .len = yyleng};
+	lex_data d = {.token_code = token_code, .len = yyleng};
 	d.text = (char*) malloc(yyleng+1);
 	strncpy(d.text, yytext, yyleng+1);
 	stack_push(d);
@@ -54,7 +54,7 @@ void yyrewind(int n) {
 		i = lex_stack.top;
 		free(lex_stack.data[i].text);
 		lex_stack.data[i].text = NULL;
-		if (lex_stack.data[i].token_code != MATH_SPACE) {
+		if (lex_stack.data[i].token_code != PARSER_WHITE_SPACE) {
 			n--;
 		}
 		curr_ptr -= lex_stack.data[lex_stack.top--].len;
@@ -75,7 +75,7 @@ void restore(int _chkp) {
 }
 
 static void process_white_space(int n) {
-	lex_data d = {.token_code = MATH_SPACE, .len = n};
+	lex_data d = {.token_code = PARSER_WHITE_SPACE, .len = n};
 	stack_push(d);
 	curr_ptr += n;
 }

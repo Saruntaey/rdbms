@@ -5,6 +5,8 @@ extern "C" int yylex();
 #include <assert.h>
 #define MAX_STR_SIZE 512
 #define STACK_CAP 512
+#define PARSER_EOL  10000
+#define PARSER_WHITE_SPACE 10002
 
 typedef enum parse_status {
 	PARSE_ERROR,
@@ -12,7 +14,7 @@ typedef enum parse_status {
 } parse_status;
 
 typedef struct lex_data {
-	math_exp_type token_code;
+	int token_code;
 	int len;
 	char *text;
 } lex_data;
