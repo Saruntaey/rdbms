@@ -109,7 +109,7 @@ static void process_white_space(int n) {
     return SQL_INT;
 }
 
-"decimal" {
+decimal|double {
     return SQL_DOUBLE;
 }
 

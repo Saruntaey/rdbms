@@ -11,6 +11,7 @@ int main(void) {
 	while (1) {
 		printf("dbms=#");
 		fgets(lex_buffer, sizeof(lex_buffer), stdin);
+		if (lex_buffer[0] == '\n') continue;
 		stack_reset();
 		d = cyylex(); 
 		yyrewind(1);
@@ -23,6 +24,7 @@ int main(void) {
 				s = create_query_parser();
 				if (s == PARSE_SUCCESS) {
 					// todo
+					printf("parse success\n");
 				}
 				break;
 			case SQL_DELETE_Q:
