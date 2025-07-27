@@ -1,6 +1,6 @@
 CC = g++-13
 CFLAGS = -g -MMD -MP
-LDFLAGS = -Isrc/parser
+LDFLAGS = -Isrc/parser -Isrc/core
 TARGET_NAME = dbms
 OUTDIR = out
 TARGET = $(OUTDIR)/$(TARGET_NAME)
