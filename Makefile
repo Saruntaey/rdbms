@@ -1,6 +1,6 @@
 CC = g++-13
 CFLAGS = -g -MMD -MP
-LDFLAGS = -Isrc/parser -Isrc/core
+LDFLAGS = -Isrc/parser -Isrc/core -Isrc/b_plus_tree_lib
 TARGET_NAME = dbms
 OUTDIR = out
 TARGET = $(OUTDIR)/$(TARGET_NAME)
@@ -9,12 +9,20 @@ OBJS = $(OUTDIR)/lex.yy.o $(patsubst src/%.cpp, $(OUTDIR)/%.o, $(filter %.cpp, $
 				$(patsubst src/%.c, $(OUTDIR)/%.o, $(filter %.c, $(SRCS)))
 DEPS = $(OBJS:.o=.d)
 
+TEST_SRCS = $(shell find test -type f -name '*.c')
+TEST_OBJS = $(patsubst %.c, $(OUTDIR)/%.o, $(TEST_SRCS))
+TEST_DEPS = $(TEST_OBJS:.o=.d)
+
 $(TARGET): $(OBJS) 
 	$(CC) $(CFLAGS) -o $@ $^ -lfl
 
 $(OUTDIR)/%.o: src/%.c | $(OUTDIR)
 	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) $(LDFLAGS) -c -o $@ $<
+
+$(OUTDIR)/b_plus_tree_lib/%.o: src/b_plus_tree_lib/%.c | $(OUTDIR)
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) -fpermissive $(LDFLAGS) -c -o $@ $<
 
 $(OUTDIR)/%.o: src/%.cpp | $(OUTDIR)
 	@mkdir -p $(dir $@)
@@ -26,13 +34,23 @@ src/lex.yy.c: src/parser/parser.l
 $(OUTDIR):
 	mkdir $@
 
-.PHONY: clean run re
+$(OUTDIR)/test_exe: $(filter-out %main.o, $(OBJS)) $(TEST_OBJS)
+	$(CC) $(CFLAGS) -o $@ $^ -lfl
+
+$(OUTDIR)/test/%.o: test/%.c | $(OUTDIR)
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) $(LDFLAGS) -c -o $@ $<
+
+.PHONY: clean run re run_test
 
 clean:
-	rm -f $(TARGET) lex.yy.c $(OBJS) $(DEPS)
+	rm -f $(TARGET) lex.yy.c $(OBJS) $(DEPS) $(TEST_OBJS) $(TEST_DEPS) $(OUTDIR)/test_exe
 
 run: $(TARGET)
 	./$(TARGET)
+
+run_test: $(OUTDIR)/test_exe 
+	./$(OUTDIR)/test_exe
 
 re: clean $(TARGET)
 
