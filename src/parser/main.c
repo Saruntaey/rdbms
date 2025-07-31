@@ -2,12 +2,15 @@
 #include "parser_export.h"
 #include "sql_enum.h"
 #include "sql_create.h"
+#include "sql_drop.h"
 
 extern parse_status create_query_parser();
+extern parse_status drop_table_parser(char *table_name, int size);
 
 int main(void) {
 	PARSE_INIT;
 	parse_status s;
+	char table_name[TABLE_NAME_SIZE];
 
 	while (1) {
 		printf("dbms=#");
@@ -28,6 +31,10 @@ int main(void) {
 				}
 				break;
 			case SQL_DELETE_Q:
+				s = drop_table_parser(table_name, TABLE_NAME_SIZE);
+				if (s == PARSE_SUCCESS) {
+					drop_table(table_name);
+				}
 				break;
 			case SQL_INSERT_Q:
 				break;
