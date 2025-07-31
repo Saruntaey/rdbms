@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include "parser_export.h"
 #include "sql_enum.h"
+#include "sql_create.h"
 
 extern parse_status create_query_parser();
 
@@ -23,8 +24,7 @@ int main(void) {
 			case SQL_CREATE_Q:
 				s = create_query_parser();
 				if (s == PARSE_SUCCESS) {
-					// todo
-					printf("parse success\n");
+					process_create_query();
 				}
 				break;
 			case SQL_DELETE_Q:

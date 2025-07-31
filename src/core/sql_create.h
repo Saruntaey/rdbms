@@ -5,6 +5,7 @@
 #include "sql_enum.h"
 #include "sql_const.h"
 
+
 typedef struct sql_create_data {
 	char table_name[TABLE_NAME_SIZE];
 	int n_cols;
@@ -17,5 +18,7 @@ typedef struct sql_create_data {
 } sql_crate_data;
 
 extern sql_create_data create_data;
+
+void process_create_query();
 
 #endif
