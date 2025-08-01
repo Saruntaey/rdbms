@@ -119,6 +119,7 @@ parse_status TYPE() {
 			create_data.cols[create_data.n_cols].size = sql_dtype_size((sql_dtype_t) d.token_code);
 			return PARSE_SUCCESS;
 		case SQL_STRING:
+			create_data.cols[create_data.n_cols].type = (sql_dtype_t) d.token_code;
 			break;
 		default:
 			RETURN_PARSE_ERROR;
@@ -127,7 +128,6 @@ parse_status TYPE() {
 	if (d.token_code != SQL_BRACKET_START) RETURN_PARSE_ERROR;
 	d = cyylex();
 	if (d.token_code != SQL_INTEGER_VALUE) RETURN_PARSE_ERROR;
-	create_data.cols[create_data.n_cols].type = (sql_dtype_t) d.token_code;
 	create_data.cols[create_data.n_cols].size = atoi(d.text) + 1;
 	d = cyylex();
 	if (d.token_code != SQL_BRACKET_END) RETURN_PARSE_ERROR;

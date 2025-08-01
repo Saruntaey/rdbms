@@ -3,9 +3,11 @@
 #include "sql_enum.h"
 #include "sql_create.h"
 #include "sql_drop.h"
+#include "sql_insert_into.h"
 
 extern parse_status create_query_parser();
 extern parse_status drop_table_parser(char *table_name, int size);
+extern parse_status insert_into_query_parser();
 
 int main(void) {
 	PARSE_INIT;
@@ -37,6 +39,10 @@ int main(void) {
 				}
 				break;
 			case SQL_INSERT_Q:
+				s = insert_into_query_parser();
+				if (s == PARSE_SUCCESS) {
+					process_insert_into_query();
+				}
 				break;
 			default:
 				printf("error: unrecognize input\n");
