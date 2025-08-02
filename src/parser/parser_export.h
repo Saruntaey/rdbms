@@ -6,6 +6,7 @@ extern "C" int yylex();
 #define MAX_STR_SIZE 512
 #define STACK_CAP 512
 #define PARSER_EOL  10000
+#define PARSER_QUIT 10001
 #define PARSER_WHITE_SPACE 10002
 
 typedef enum parse_status {
