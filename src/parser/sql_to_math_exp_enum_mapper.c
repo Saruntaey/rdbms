@@ -27,7 +27,7 @@ int app_to_mexpr_enum_converter(int token_code) {
 		case SQL_MATH_SIN: return MATH_SIN;
 		case SQL_MATH_COS: return MATH_COS;
 		case SQL_MATH_POW: return MATH_POW;
-		case SQL_COMMA: MATH_COMMA;
+		case SQL_COMMA: return MATH_COMMA;
 		case SQL_INTEGER_VALUE: return MATH_INTEGER_VALUE;
 		case SQL_DOUBLE_VALUE: return MATH_DOUBLE_VALUE;
 		case SQL_STRING_VALUE: return MATH_STRING_VALUE;
