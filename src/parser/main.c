@@ -4,10 +4,13 @@
 #include "sql_create.h"
 #include "sql_drop.h"
 #include "sql_insert_into.h"
+#include "qep.h"
 
+extern qep select_qep;
 extern parse_status create_query_parser();
 extern parse_status drop_table_parser(char *table_name, int size);
 extern parse_status insert_into_query_parser();
+extern parse_status select_query_parser();
 
 int main(void) {
 	PARSE_INIT;
@@ -23,6 +26,12 @@ int main(void) {
 		yyrewind(1);
 		switch (d.token_code) {
 			case SQL_SELECT_Q: 
+				s = select_query_parser();
+				if (s == PARSE_SUCCESS) {
+					// todo
+					printf("select parsed success\n");
+				}
+				qep_destroy(&select_qep);
 				break;
 			case SQL_UPDATE_Q:
 				break;

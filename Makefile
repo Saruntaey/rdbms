@@ -1,8 +1,10 @@
-CC = g++-13
-CFLAGS = -g -MMD -MP
-LDFLAGS = -Isrc/parser -Isrc/core -Isrc/b_plus_tree_lib
 TARGET_NAME = dbms
 OUTDIR = out
+MATH_EXP_DIR = ../math_expression_parser
+MATH_EXP_LIB_DIR = ../math_expression_parser/out
+CC = g++-13
+CFLAGS = -g -MMD -MP
+LDFLAGS = -Isrc/parser -Isrc/core -Isrc/b_plus_tree_lib -I$(MATH_EXP_DIR)
 TARGET = $(OUTDIR)/$(TARGET_NAME)
 SRCS = $(shell find src -type f \( -name '*.c' -o -name '*.cpp' \))
 OBJS = $(OUTDIR)/lex.yy.o $(patsubst src/%.cpp, $(OUTDIR)/%.o, $(filter %.cpp, $(SRCS))) \
@@ -14,7 +16,7 @@ TEST_OBJS = $(patsubst %.c, $(OUTDIR)/%.o, $(TEST_SRCS))
 TEST_DEPS = $(TEST_OBJS:.o=.d)
 
 $(TARGET): $(OBJS) 
-	$(CC) $(CFLAGS) -o $@ $^ -lfl
+	$(CC) $(CFLAGS) -o $@ $^ -lfl -L$(MATH_EXP_LIB_DIR) -lmx
 
 $(OUTDIR)/%.o: src/%.c | $(OUTDIR)
 	@mkdir -p $(dir $@)
