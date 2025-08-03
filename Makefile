@@ -37,7 +37,7 @@ $(OUTDIR):
 	mkdir $@
 
 $(OUTDIR)/test_exe: $(filter-out %main.o, $(OBJS)) $(TEST_OBJS)
-	$(CC) $(CFLAGS) -o $@ $^ -lfl
+	$(CC) $(CFLAGS) -o $@ $^ -lfl -L$(MATH_EXP_LIB_DIR) -lmx
 
 $(OUTDIR)/test/%.o: test/%.c | $(OUTDIR)
 	@mkdir -p $(dir $@)
