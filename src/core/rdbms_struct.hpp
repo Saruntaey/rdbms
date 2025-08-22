@@ -3,8 +3,6 @@
 
 #include "sql_math_exp_interface.hpp"
 
-class DType;
-
 typedef struct qp_col {
 	sql_exp_tree *tree;
 	DType *computed_val;
