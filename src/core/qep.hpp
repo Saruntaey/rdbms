@@ -1,7 +1,7 @@
 #ifndef _QEP_
 #define _QEP_
 
-#include "rdbms_struct.h"
+#include "rdbms_struct.hpp"
 #include "sql_const.h"
 #include "catalog.h"
 

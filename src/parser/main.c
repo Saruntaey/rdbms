@@ -4,7 +4,7 @@
 #include "sql_create.h"
 #include "sql_drop.h"
 #include "sql_insert_into.h"
-#include "qep.h"
+#include "qep.hpp"
 
 extern qep select_qep;
 extern parse_status create_query_parser();

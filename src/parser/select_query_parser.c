@@ -1,8 +1,8 @@
 #include <string.h>
 #include "parser_export.h"
 #include "sql_enum.h"
-#include "sql_math_exp_interface.h"
-#include "qep.h"
+#include "sql_math_exp_interface.hpp"
+#include "qep.hpp"
 
 qep select_qep;
 

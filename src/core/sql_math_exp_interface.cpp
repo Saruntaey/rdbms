@@ -1,5 +1,5 @@
 #include <stdlib.h>
-#include "sql_math_exp_interface.h"
+#include "sql_math_exp_interface.hpp"
 #include "parser_export.h"
 
 extern parse_status E();

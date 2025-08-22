@@ -1,4 +1,4 @@
-#include "qep.h"
+#include "qep.hpp"
 
 void qp_col_destroy(qp_col *p) {
 	if (!p) return;

@@ -1,7 +1,7 @@
 #ifndef _RDBMS_STRUCT_
 #define _RDBMS_STRUCT_
 
-#include "sql_math_exp_interface.h"
+#include "sql_math_exp_interface.hpp"
 
 class DType;
 

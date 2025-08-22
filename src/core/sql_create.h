@@ -15,7 +15,7 @@ typedef struct sql_create_data {
 		int size;
 		bool is_primary_key;
 	} cols[MAX_COLS_PER_TABLE];
-} sql_crate_data;
+} sql_create_data;
 
 extern sql_create_data create_data;
 

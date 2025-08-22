@@ -6,7 +6,7 @@
 #include "sql_enum.h"
 #include "sql_create.h"
 
-extern BPlusTree catalog;
+extern BPlusTree_t catalog;
 
 typedef struct schema_rec {
 	char col_name[COL_NAME_SIZE];

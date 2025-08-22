@@ -1,2 +1,4 @@
 out/
 src/lex.yy.c
+.cache/
+compile_commands.json
