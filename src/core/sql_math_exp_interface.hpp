@@ -9,5 +9,6 @@ typedef struct sql_exp_tree {
 
 sql_exp_tree *create_sql_exp_tree();
 void sql_exp_tree_destroy(sql_exp_tree *t);
+DType *resolve_sql_exp_tree(sql_exp_tree *t);
 
 #endif

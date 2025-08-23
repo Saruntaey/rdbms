@@ -42,3 +42,8 @@ MathExprTree *create_math_exp_tree() {
 	free(postfix);
 	return tree;
 }
+
+DType *resolve_sql_exp_tree(sql_exp_tree *t) {
+	if (!t) return nullptr;
+	return t->tree->eval();
+}
