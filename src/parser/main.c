@@ -11,6 +11,7 @@ extern parse_status create_query_parser();
 extern parse_status drop_table_parser(char *table_name, int size);
 extern parse_status insert_into_query_parser();
 extern parse_status select_query_parser();
+extern void process_select_query(qep *q);
 
 int main(void) {
 	PARSE_INIT;
@@ -28,8 +29,7 @@ int main(void) {
 			case SQL_SELECT_Q: 
 				s = select_query_parser();
 				if (s == PARSE_SUCCESS) {
-					// todo
-					printf("select parsed success\n");
+					process_select_query(&select_qep);
 				}
 				qep_destroy(&select_qep);
 				break;

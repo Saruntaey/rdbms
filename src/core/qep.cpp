@@ -12,7 +12,7 @@ void qep_destroy(qep *p) {
 	int i;
 
 	if (!p) return;
-	for(i = 0; i < p->select.n; i++) {
+	for (i = 0; i < p->select.n; i++) {
 		qp_col_destroy(&p->select.cols[i]);
 	}
 }
