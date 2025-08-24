@@ -6,6 +6,7 @@
 #include "sql_const.h"
 #include <cassert>
 #include <cstdio>
+#include <unordered_map>
 
 #define COLUMN_WIDTH 20
 
@@ -46,6 +47,7 @@ bool init_qep(qep *q) {
   get_val = make_get_val(q);
   for (i = 0; i < q->select.n; i++) {
     q->select.cols[i].tree->tree->setGetVal(get_val);
+	q->select.cols[i].computed_row = -1;
   }
 
   if (q->where.tree) {
@@ -74,14 +76,20 @@ void do_select(qep *q) {
 	rows = 0;
 	print_header(q);
 	while (get_next_row(q)) {
+		q->curr_row = rows;
+		q->use_cache = false;
 		if (!check_predicate(q)) continue;
+		q->use_cache = true;
 		for (i = 0; i < q->select.n; i++) {
-			free(q->select.cols[i].computed_val);
-			q->select.cols[i].computed_val =
-				resolve_sql_exp_tree(q->select.cols[i].tree);
-			if (!q->select.cols[i].computed_val) {
-				printf("Error: cannot resolve col %d\n", i);
-				return;
+			if (q->select.cols[i].computed_row != rows) {
+				free(q->select.cols[i].computed_val);
+				q->select.cols[i].computed_val =
+					resolve_sql_exp_tree(q->select.cols[i].tree);
+				if (!q->select.cols[i].computed_val) {
+					printf("Error: cannot resolve col %d\n", i);
+					return;
+				}
+				q->select.cols[i].computed_row = rows;
 			}
 		}
 		print_row(q);
@@ -217,38 +225,50 @@ int get_table_index(const char *c) { return 0; }
 const char *get_col_name(const char *c) { return c; }
 
 DType *_get_val(const char *c) {
-  int tableIdx;
-  catalog_rec *cat_rec;
-  schema_rec *schm_rec;
-  void *rec;
-  BPluskey_t key;
-  void *val;
+	int tableIdx;
+	catalog_rec *cat_rec;
+	schema_rec *schm_rec;
+	void *rec;
+	BPluskey_t key;
+	void *val;
 
-  tableIdx = get_table_index(c);
-  key.key = (void *)get_col_name(c);
-  key.key_size = COL_NAME_SIZE;
-  rec = _q->joined_rows.table[tableIdx].rec;
-  cat_rec = _q->join.tables[tableIdx].c_rec;
-  schm_rec = (schema_rec *)BPlusTree_Query_Key(cat_rec->schema_table, &key);
-  if (!schm_rec) {
-    printf("Error: no col %s in table %s\n", (char *)key.key,
-           cat_rec->table_name);
-    return nullptr;
-  }
-  val = (void *)((char *)rec + schm_rec->offset);
+	if (auto search = _q->col_alias->find(c); search != _q->col_alias->end()) {
+		int colIdx = search->second;
+		qp_col *col;
 
-  switch (schm_rec->dtype) {
-  case SQL_STRING:
-	return new DTypeStr((char*) val);
-  case SQL_INT:
-    return new DTypeInt(*(int *)val);
-  case SQL_DOUBLE:
-    return new DTypeDouble(*(double *)val);
-  case SQL_BOOL:
-    return new DTypeBool(*(bool *)val);
-  default:
-    return nullptr;
-  }
+		col = &_q->select.cols[colIdx];
+		if (!_q->use_cache || col->computed_row != _q->curr_row) {
+			col->computed_row = _q->curr_row;
+			delete col->computed_val;
+			col->computed_val = col->tree->tree->eval();
+		}
+		return col->computed_val->clone();
+	}
+	tableIdx = get_table_index(c);
+	key.key = (void *)get_col_name(c);
+	key.key_size = COL_NAME_SIZE;
+	rec = _q->joined_rows.table[tableIdx].rec;
+	cat_rec = _q->join.tables[tableIdx].c_rec;
+	schm_rec = (schema_rec *)BPlusTree_Query_Key(cat_rec->schema_table, &key);
+	if (!schm_rec) {
+		printf("Error: no col %s in table %s\n", (char *)key.key,
+		 cat_rec->table_name);
+		return nullptr;
+	}
+	val = (void *)((char *)rec + schm_rec->offset);
+
+	switch (schm_rec->dtype) {
+		case SQL_STRING:
+			return new DTypeStr((char*) val);
+		case SQL_INT:
+			return new DTypeInt(*(int *)val);
+		case SQL_DOUBLE:
+			return new DTypeDouble(*(double *)val);
+		case SQL_BOOL:
+			return new DTypeBool(*(bool *)val);
+		default:
+			return nullptr;
+	}
 }
 
 DType *(*make_get_val(qep *q))(const char *) {

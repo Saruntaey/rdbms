@@ -6,6 +6,7 @@
 typedef struct qp_col {
 	sql_exp_tree *tree;
 	DType *computed_val;
+	int computed_row;
 	char *display_name;
 } qp_col;
 

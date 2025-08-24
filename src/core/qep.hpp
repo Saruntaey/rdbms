@@ -5,6 +5,7 @@
 #include "rdbms_struct.hpp"
 #include "sql_const.h"
 #include "catalog.h"
+#include <unordered_map>
 
 typedef struct qep {
 	struct {
@@ -19,6 +20,8 @@ typedef struct qep {
 		int n;
 		qp_col cols[MAX_COL_IN_SELECT_LIST];
 	} select;
+
+	std::unordered_map<std::string, int> *col_alias;
 
 	struct {
 		sql_predicate_exp_tree *tree;
@@ -43,6 +46,9 @@ typedef struct qep {
 
 	bool is_begin;
 	bool is_end;
+
+	int curr_row;
+	bool use_cache;
 } qep;
 
 void qep_destroy(qep *p);

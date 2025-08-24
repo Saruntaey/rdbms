@@ -1,4 +1,5 @@
 #include <string.h>
+#include <unordered_map>
 #include "parser_export.h"
 #include "sql_enum.h"
 #include "sql_math_exp_interface.hpp"
@@ -23,6 +24,7 @@ parse_status select_query_parser() {
 	parse_status s;
 
 	memset(&select_qep, 0, sizeof(select_qep));
+	select_qep.col_alias = new std::unordered_map<std::string, int>();
 	d = cyylex();
 	if (d.token_code != SQL_SELECT_Q) RETURN_PARSE_ERROR;
 	s = COLS();
@@ -157,6 +159,7 @@ parse_status as_variable() {
 	*ptr = (char *) malloc(d.len+1);
 	strncpy(*ptr, d.text, d.len);
 	(*ptr)[d.len] = '\0';
+	select_qep.col_alias->insert({(*ptr), select_qep.select.n});
 	return PARSE_SUCCESS;
 }
 
