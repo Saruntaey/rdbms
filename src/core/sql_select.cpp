@@ -1,6 +1,7 @@
 #include "BPlusTree.h"
 #include "catalog.h"
 #include "dtype.h"
+#include "math_exp_enum.h"
 #include "qep.hpp"
 #include "sql_const.h"
 #include <cassert>
@@ -152,6 +153,11 @@ void print_row(qep *q) {
 			case MATH_DOUBLE_VALUE:
 				printf("%-*f|", COLUMN_WIDTH, dynamic_cast<DTypeDouble *>(val)->val);
 				break;
+			case MATH_STRING_VALUE:
+				printf("%-*s|", COLUMN_WIDTH, dynamic_cast<DTypeStr *>(val)->val.c_str());
+				break;
+			default:
+				assert(0);
 	}
   }
   printf("\n");
@@ -186,8 +192,7 @@ DType *_get_val(const char *c) {
 
   switch (schm_rec->dtype) {
   case SQL_STRING:
-    printf("math expr not support string yet\n");
-    assert(1);
+	return new DTypeStr((char*) val);
   case SQL_INT:
     return new DTypeInt(*(int *)val);
   case SQL_DOUBLE:
