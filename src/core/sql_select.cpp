@@ -16,6 +16,7 @@ static void do_select(qep *q);
 static bool get_next_row(qep *q);
 static bool iterate_begin(qep *q);
 static bool iterate_next(qep *q, int n);
+static bool check_predicate(qep *q);
 static void print_header(qep *q);
 static void print_line(int cols);
 static void print_row(qep *q);
@@ -47,6 +48,10 @@ bool init_qep(qep *q) {
     q->select.cols[i].tree->tree->setGetVal(get_val);
   }
 
+  if (q->where.tree) {
+	q->where.tree->tree->setGetVal(get_val);
+  }
+
   key.key_size = TABLE_NAME_SIZE;
   for (i = 0; i < q->join.n; i++) {
     key.key = q->join.tables[i].name;
@@ -69,6 +74,7 @@ void do_select(qep *q) {
 	rows = 0;
 	print_header(q);
 	while (get_next_row(q)) {
+		if (!check_predicate(q)) continue;
 		for (i = 0; i < q->select.n; i++) {
 			free(q->select.cols[i].computed_val);
 			q->select.cols[i].computed_val =
@@ -147,6 +153,17 @@ bool iterate_next(qep *q, int i) {
   q->joined_rows.table[i].key = key;
   q->joined_rows.table[i].rec = rec;
   return true;
+}
+
+static bool check_predicate(qep *q) {
+	DTypeBool *res;
+
+	if (!q->where.tree) return true;
+	free(q->where.computed_val);
+	q->where.computed_val = q->where.tree->tree->eval();
+	res = dynamic_cast<DTypeBool *>(q->where.computed_val);
+	assert(res);
+	return res->val;
 }
 
 void print_line(int cols) {

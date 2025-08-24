@@ -193,6 +193,14 @@ decimal|double {
     return SQL_GREATER_THAN;
 }
 
+"<=" {
+    return SQL_LESS_THAN_EQ;
+}
+
+">=" {
+    return SQL_GREATER_THAN_EQ;
+}
+
 "=" {
     return SQL_EQ;
 }
