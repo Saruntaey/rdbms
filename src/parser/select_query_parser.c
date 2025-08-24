@@ -11,6 +11,7 @@ static parse_status COL();
 static parse_status TABS();
 static parse_status TAB();
 static parse_status where_PREDICATE();
+static parse_status as_variable();
 
 // select_query_parser -> select COLS from TABS [where PREDICATE]
 // COLS -> COL,COLS | COL
@@ -59,6 +60,7 @@ parse_status COLS() {
 	PARSE_INIT;
 	parse_status s;
 	int n_cols = select_qep.select.n;
+	int i;
 
 	// COLS -> COL,COLS
 	do {
@@ -72,7 +74,9 @@ parse_status COLS() {
 	} while(0);
 	RESTORE_CHECK_POINT;
 	while (select_qep.select.n > n_cols) {
-		memset(&select_qep.select.cols[--select_qep.select.n], 0, sizeof(select_qep.select.cols[0]));
+		i = --select_qep.select.n;
+		free(select_qep.select.cols[i].display_name);
+		memset(&select_qep.select.cols[i], 0, sizeof(select_qep.select.cols[0]));
 	}
 
 	// COLS -> COL
@@ -83,7 +87,9 @@ parse_status COLS() {
 	} while(0);
 
 	while (select_qep.select.n > n_cols) {
-		memset(&select_qep.select.cols[--select_qep.select.n], 0, sizeof(select_qep.select.cols[0]));
+		i = --select_qep.select.n;
+		free(select_qep.select.cols[i].display_name);
+		memset(&select_qep.select.cols[i], 0, sizeof(select_qep.select.cols[0]));
 	}
 	RETURN_PARSE_ERROR;
 }
@@ -118,7 +124,10 @@ char *get_display_name(int exp_start) {
 	return display_name;
 }
 
+// COL -> <MathExpr> [as <vairable>]
 parse_status COL() {
+	PARSE_INIT;
+	parse_status s;
 	sql_exp_tree *tree;
 	int exp_start;
 
@@ -128,8 +137,26 @@ parse_status COL() {
 		return PARSE_ERROR;
 	}
 	select_qep.select.cols[select_qep.select.n].tree = tree;
-	select_qep.select.cols[select_qep.select.n].display_name = get_display_name(exp_start);
+	s = as_variable();
+	if (s == PARSE_ERROR) {
+		select_qep.select.cols[select_qep.select.n].display_name = get_display_name(exp_start);
+	}
 	select_qep.select.n++;
+	return PARSE_SUCCESS;
+}
+
+parse_status as_variable() {
+	PARSE_INIT;
+	char **ptr;
+
+	ptr = &select_qep.select.cols[select_qep.select.n].display_name;
+	d = cyylex();
+	if (d.token_code != SQL_AS) RETURN_PARSE_ERROR;
+	d = cyylex();
+	if (d.token_code != SQL_IDENTIFIER) RETURN_PARSE_ERROR;
+	*ptr = (char *) malloc(d.len+1);
+	strncpy(*ptr, d.text, d.len);
+	(*ptr)[d.len] = '\0';
 	return PARSE_SUCCESS;
 }
 
