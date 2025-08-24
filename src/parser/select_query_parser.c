@@ -66,14 +66,48 @@ parse_status COLS() {
 	RETURN_PARSE_ERROR;
 }
 
+char *get_display_name(int exp_start) {
+	char *display_name;
+	int n;
+	int i;
+	int count;
+	int j;
+
+	count = 0;
+	n = 0;
+	for (i = exp_start; i <= lex_stack.top; i++) {
+		if (lex_stack.data[i].token_code == PARSER_WHITE_SPACE) {
+			continue;
+		}
+		count++;
+		n += lex_stack.data[i].len;
+	}
+	display_name = (char *) malloc(n + count);
+	j = 0;
+	for (i = exp_start; i <= lex_stack.top; i++) {
+		if (lex_stack.data[i].token_code == PARSER_WHITE_SPACE) {
+			continue;
+		}
+		strncpy(display_name + j, lex_stack.data[i].text, lex_stack.data[i].len);
+		j += lex_stack.data[i].len;
+		display_name[j++] = ' ';
+	}
+	display_name[j] = '\0';
+	return display_name;
+}
+
 parse_status COL() {
 	sql_exp_tree *tree;
+	int exp_start;
 
+	exp_start = lex_stack.top + 1;
 	tree = create_sql_exp_tree();
 	if (!tree) {
 		return PARSE_ERROR;
 	}
-	select_qep.select.cols[select_qep.select.n++].tree = tree;
+	select_qep.select.cols[select_qep.select.n].tree = tree;
+	select_qep.select.cols[select_qep.select.n].display_name = get_display_name(exp_start);
+	select_qep.select.n++;
 	return PARSE_SUCCESS;
 }
 

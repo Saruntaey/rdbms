@@ -16,6 +16,8 @@ static void do_select(qep *q);
 static bool get_next_row(qep *q);
 static bool iterate_begin(qep *q);
 static bool iterate_next(qep *q, int n);
+static void print_header(qep *q);
+static void print_line(int cols);
 static void print_row(qep *q);
 static DType *get_val(const char *c);
 static DType *(*make_get_val(qep *q))(const char *);
@@ -62,7 +64,10 @@ bool init_qep(qep *q) {
 
 void do_select(qep *q) {
 	int i;
+	int rows;
 
+	rows = 0;
+	print_header(q);
 	while (get_next_row(q)) {
 		for (i = 0; i < q->select.n; i++) {
 			free(q->select.cols[i].computed_val);
@@ -74,7 +79,10 @@ void do_select(qep *q) {
 			}
 		}
 		print_row(q);
+		rows++;
 	}
+	print_line(q->select.n);
+	printf("(%d rows)\n", rows);
 }
 
 bool get_next_row(qep *q) {
@@ -141,12 +149,34 @@ bool iterate_next(qep *q, int i) {
   return true;
 }
 
-void print_row(qep *q) {
-  DType *val;
+void print_line(int cols) {
+	printf("+");
+	for (int i = 0; i < cols; i++) {
+		for (int j = 0; j < COLUMN_WIDTH; j++) {
+			printf("-");
+		}
+		printf("+");
+  	}
+	printf("\n");
+}
 
-  for (int i = 0; i < q->select.n; i++) {
-	val = q->select.cols[i].computed_val;
-	switch (val->id) {
+void print_header(qep *q) {
+	print_line(q->select.n);
+	printf("|");
+	for (int i = 0; i < q->select.n; i++) {
+		printf("%-*s|", COLUMN_WIDTH, q->select.cols[i].display_name);
+	}
+	printf("\n");
+	print_line(q->select.n);
+}
+
+void print_row(qep *q) {
+	DType *val;
+
+	printf("|");
+	for (int i = 0; i < q->select.n; i++) {
+		val = q->select.cols[i].computed_val;
+		switch (val->id) {
 			case MATH_INTEGER_VALUE:
 				printf("%-*d|", COLUMN_WIDTH, dynamic_cast<DTypeInt *>(val)->val);
 				break;
@@ -158,9 +188,9 @@ void print_row(qep *q) {
 				break;
 			default:
 				assert(0);
+		}
 	}
-  }
-  printf("\n");
+	printf("\n");
 }
 
 qep *_q;

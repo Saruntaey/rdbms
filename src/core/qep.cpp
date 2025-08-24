@@ -4,8 +4,10 @@ void qp_col_destroy(qp_col *p) {
 	if (!p) return;
 	delete p->tree;
 	delete p->computed_val;
+	free(p->display_name);
 	p->tree = nullptr;
 	p->computed_val = nullptr;
+	p->display_name = nullptr;
 }
 
 void qep_destroy(qep *p) {
