@@ -66,6 +66,7 @@ bool init_qep(qep *q) {
   }
   q->joined_rows.n = q->join.n;
   q->iterators.n = q->join.n;
+  q->curr_row = -1;
   return true;
 }
 
@@ -76,12 +77,10 @@ void do_select(qep *q) {
 	rows = 0;
 	print_header(q);
 	while (get_next_row(q)) {
-		q->curr_row = rows;
-		q->use_cache = false;
+		q->curr_row++;
 		if (!check_predicate(q)) continue;
-		q->use_cache = true;
 		for (i = 0; i < q->select.n; i++) {
-			if (q->select.cols[i].computed_row != rows) {
+			if (q->select.cols[i].computed_row != q->curr_row) {
 				free(q->select.cols[i].computed_val);
 				q->select.cols[i].computed_val =
 					resolve_sql_exp_tree(q->select.cols[i].tree);
@@ -89,7 +88,7 @@ void do_select(qep *q) {
 					printf("Error: cannot resolve col %d\n", i);
 					return;
 				}
-				q->select.cols[i].computed_row = rows;
+				q->select.cols[i].computed_row = q->curr_row;
 			}
 		}
 		print_row(q);
@@ -237,7 +236,7 @@ DType *_get_val(const char *c) {
 		qp_col *col;
 
 		col = &_q->select.cols[colIdx];
-		if (!_q->use_cache || col->computed_row != _q->curr_row) {
+		if (col->computed_row != _q->curr_row) {
 			col->computed_row = _q->curr_row;
 			delete col->computed_val;
 			col->computed_val = col->tree->tree->eval();

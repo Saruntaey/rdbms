@@ -48,7 +48,6 @@ typedef struct qep {
 	bool is_end;
 
 	int curr_row;
-	bool use_cache;
 } qep;
 
 void qep_destroy(qep *p);
