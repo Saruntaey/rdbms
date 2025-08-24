@@ -22,6 +22,7 @@ typedef struct qep {
 	} select;
 
 	std::unordered_map<std::string, int> *col_alias;
+	std::unordered_map<std::string, data_src> *table_map;
 
 	struct {
 		sql_predicate_exp_tree *tree;

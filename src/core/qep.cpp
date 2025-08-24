@@ -25,5 +25,12 @@ void qep_destroy(qep *p) {
 	p->where.tree = nullptr;
 	delete p->where.computed_val;
 	p->where.computed_val = nullptr;
+
 	p->col_alias->clear();
+	free(p->col_alias);
+	p->col_alias = nullptr;
+
+	p->table_map->clear();
+	free(p->table_map);
+	p->table_map = nullptr;
 }

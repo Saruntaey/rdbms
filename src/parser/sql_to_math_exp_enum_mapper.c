@@ -4,8 +4,8 @@
 
 int app_to_mexpr_enum_converter(int token_code) {
 	switch (token_code) {
+		case SQL_IDENTIFIER_IDENTIFIER:
 		case SQL_IDENTIFIER: return MATH_IDENTIFIER;
-		case SQL_IDENTIFIER_IDENTIFIER: return MATH_IDENTIFIER_IDENTIFIER;
 		case SQL_BRACKET_START: return MATH_BRACKET_START;
 		case SQL_BRACKET_END: return MATH_BRACKET_END;
 		case SQL_LESS_THAN_EQ: return MATH_LESS_THAN_EQ;

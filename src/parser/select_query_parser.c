@@ -1,6 +1,7 @@
 #include <string.h>
 #include <unordered_map>
 #include "parser_export.h"
+#include "rdbms_struct.hpp"
 #include "sql_enum.h"
 #include "sql_math_exp_interface.hpp"
 #include "qep.hpp"
@@ -16,15 +17,16 @@ static parse_status as_variable();
 
 // select_query_parser -> select COLS from TABS [where PREDICATE]
 // COLS -> COL,COLS | COL
-// COL -> <MathExpr>
+// COL -> <MathExpr> [as <vairable>]
 // TABS -> TAB,TABS | TAB
-// TAB -> <tableName>
+// TAB -> <tableName> [<table_alias>]
 parse_status select_query_parser() {
 	PARSE_INIT;
 	parse_status s;
 
 	memset(&select_qep, 0, sizeof(select_qep));
 	select_qep.col_alias = new std::unordered_map<std::string, int>();
+	select_qep.table_map = new std::unordered_map<std::string, data_src>();
 	d = cyylex();
 	if (d.token_code != SQL_SELECT_Q) RETURN_PARSE_ERROR;
 	s = COLS();
@@ -196,6 +198,21 @@ parse_status TABS() {
 	RETURN_PARSE_ERROR;
 }
 
+parse_status table_alias() { 
+	PARSE_INIT;
+
+	do {
+		d = cyylex();
+		if (d.token_code != SQL_IDENTIFIER) break;
+		select_qep.table_map->insert({d.text, {.tableIdx = select_qep.join.n}});
+		return PARSE_SUCCESS;
+	} while (0);
+	RESTORE_CHECK_POINT;
+
+	return PARSE_SUCCESS;
+}
+
+// TAB -> <tableName> [<table_alias>]
 parse_status TAB() {
 	PARSE_INIT;
 
@@ -204,6 +221,8 @@ parse_status TAB() {
 	strncpy(select_qep.join.tables[select_qep.join.n].name, d.text, TABLE_NAME_SIZE - 1);
 	select_qep.join.tables[select_qep.join.n].name[TABLE_NAME_SIZE - 1] = '\0';
 	select_qep.join.tables[select_qep.join.n].c_rec = nullptr;
+	table_alias();
 	select_qep.join.n++;
 	return PARSE_SUCCESS;
 }
+
