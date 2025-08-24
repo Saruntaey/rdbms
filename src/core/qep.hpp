@@ -21,6 +21,11 @@ typedef struct qep {
 	} select;
 
 	struct {
+		sql_predicate_exp_tree *tree;
+		DType *computed_val;
+	} where;
+
+	struct {
 		int n;
 		struct {
 			BPluskey_t *key;

@@ -1,8 +1,10 @@
 #include "qep.hpp"
+#include "sql_math_exp_interface.hpp"
 
 void qp_col_destroy(qp_col *p) {
 	if (!p) return;
-	delete p->tree;
+	sql_exp_tree_destroy(p->tree);
+	free(p->tree);
 	delete p->computed_val;
 	free(p->display_name);
 	p->tree = nullptr;
@@ -17,4 +19,10 @@ void qep_destroy(qep *p) {
 	for (i = 0; i < p->select.n; i++) {
 		qp_col_destroy(&p->select.cols[i]);
 	}
+
+	sql_predicate_exp_tree_destroy(p->where.tree);
+	free(p->where.tree);
+	p->where.tree = nullptr;
+	delete p->where.computed_val;
+	p->where.computed_val = nullptr;
 }
