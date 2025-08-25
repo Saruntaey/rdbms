@@ -2,11 +2,14 @@
 #include "catalog.h"
 #include "dtype.h"
 #include "math_exp_enum.h"
+#include "math_expr_tree.h"
+#include "parser_export.h"
 #include "qep.hpp"
 #include "rdbms_struct.hpp"
 #include "sql_const.h"
 #include <cassert>
 #include <cstdio>
+#include <cstdlib>
 #include <cstring>
 #include <unordered_map>
 
@@ -105,10 +108,71 @@ bool parse_variable_name(qep *q, std::string var_name) {
   return true;
 }
 
+bool init_select_all(qep *q, get_val_fn get_val) {
+  int i;
+  int j;
+  BPlusTree_t *schm_table;
+  BPluskey_t *key;
+  void *rec;
+  schema_rec *schm_rec;
+  char *col_name;
+  int n;
+  int t_len;
+  int c_len;
+  qp_col *col;
+  lex_data lex;
+  lex_data *lex_ptr;
+  char *prefix;
+
+  assert(q->select.n == 0);
+  lex_ptr = &lex;
+  for (i = 0; i < q->join.n; i++) {
+    schm_table = q->join.tables[i].c_rec->schema_table;
+    if (t_len = strlen(q->join.tables[i].alias); t_len) {
+      prefix = q->join.tables[i].alias;
+    } else {
+      prefix = q->join.tables[i].name;
+      t_len = strlen(q->join.tables[i].name);
+    }
+    BPTREE_ITERATE_ALL_RECORDS_BEGIN(schm_table, key, rec) {
+      schm_rec = (schema_rec *)rec;
+      c_len = strlen(schm_rec->col_name);
+      if (q->join.n == 1) {
+        n = c_len;
+        col_name = (char *)malloc(n + 1);
+        strncpy(col_name, schm_rec->col_name, n);
+        col_name[n] = '\0';
+      } else {
+        n = t_len + c_len;
+        col_name = (char *)malloc(n + 2);
+        strncpy(col_name, prefix, t_len);
+        col_name[t_len] = '.';
+        strncpy(col_name + t_len + 1, schm_rec->col_name, c_len);
+        col_name[n + 1] = '\0';
+      }
+      q->table_map->insert({col_name, (data_src){.tableIdx = i,
+                                                 .offset = schm_rec->offset,
+                                                 .dtype = schm_rec->dtype}});
+      col = &q->select.cols[q->select.n++];
+      lex = (lex_data){
+          .token_code = SQL_IDENTIFIER_IDENTIFIER, .len = n, .text = col_name};
+      col->tree = (sql_exp_tree *)calloc(1, sizeof(sql_exp_tree));
+      col->tree->tree = new MathExprTree(&lex_ptr, 1, get_val);
+      col->display_name = col_name;
+      col->computed_row = -1;
+    }
+    BPTREE_ITERATE_ALL_RECORDS_END(schm_table, key, rec);
+  }
+  return true;
+}
+
 bool init_select(qep *q, get_val_fn get_val) {
   qp_col *col;
   int i;
 
+  if (q->is_project_all_cols) {
+    return init_select_all(q, get_val);
+  }
   for (i = 0; i < q->select.n; i++) {
     col = &q->select.cols[i];
     col->tree->tree->setGetVal(get_val);

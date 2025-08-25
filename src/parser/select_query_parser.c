@@ -8,6 +8,7 @@
 
 qep select_qep;
 
+static parse_status FIELDS();
 static parse_status COLS();
 static parse_status COL();
 static parse_status TABS();
@@ -15,7 +16,8 @@ static parse_status TAB();
 static parse_status where_PREDICATE();
 static parse_status as_variable();
 
-// select_query_parser -> select COLS from TABS [where PREDICATE]
+// select_query_parser -> select FIELDS from TABS [where PREDICATE]
+// FIELDS -> COLS | *
 // COLS -> COL,COLS | COL
 // COL -> <MathExpr> [as <vairable>]
 // TABS -> TAB,TABS | TAB
@@ -29,7 +31,7 @@ parse_status select_query_parser() {
 	select_qep.table_map = new std::unordered_map<std::string, data_src>();
 	d = cyylex();
 	if (d.token_code != SQL_SELECT_Q) RETURN_PARSE_ERROR;
-	s = COLS();
+	s = FIELDS();
 	if (s == PARSE_ERROR) RETURN_PARSE_ERROR;
 	d = cyylex();
 	if (d.token_code != SQL_FROM) RETURN_PARSE_ERROR;
@@ -40,6 +42,29 @@ parse_status select_query_parser() {
 	d = cyylex();
 	if (d.token_code != PARSER_EOL) RETURN_PARSE_ERROR;
 	return PARSE_SUCCESS;
+}
+
+// FIELDS -> COLS | *
+parse_status FIELDS() {
+	PARSE_INIT;
+	parse_status s;
+
+	// FIELDS -> *
+	do {
+		d = cyylex();
+		if (d.token_code != SQL_MATH_MUL) break;
+		select_qep.is_project_all_cols = true;
+		return PARSE_SUCCESS;
+	} while(0);
+	RESTORE_CHECK_POINT;
+
+	// FIELDS -> COLS
+	do {
+		s = COLS();
+		if (s == PARSE_ERROR) break;
+		return PARSE_SUCCESS;
+	} while(0);
+	return PARSE_ERROR;
 }
 
 parse_status where_PREDICATE() {
@@ -200,11 +225,19 @@ parse_status TABS() {
 
 parse_status table_alias() { 
 	PARSE_INIT;
+	char *al;
 
 	do {
 		d = cyylex();
 		if (d.token_code != SQL_IDENTIFIER) break;
 		select_qep.table_map->insert({d.text, {.tableIdx = select_qep.join.n}});
+		al = select_qep.join.tables[select_qep.join.n].alias;
+		if (d.len > TABLE_NAME_SIZE-1) {
+			printf("buffer overflow\n");
+			assert(1);
+		}
+		strncpy(al, d.text, d.len);
+		al[d.len] = '\0';
 		return PARSE_SUCCESS;
 	} while (0);
 	RESTORE_CHECK_POINT;

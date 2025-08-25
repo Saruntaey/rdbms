@@ -13,6 +13,7 @@ typedef struct qep {
 		struct {
 			catalog_rec *c_rec;
 			char name[TABLE_NAME_SIZE];
+			char alias[TABLE_NAME_SIZE];
 		} tables[MAX_TABLE_IN_JOIN_LIST];
 	} join;
 
@@ -49,6 +50,8 @@ typedef struct qep {
 	bool is_end;
 
 	int curr_row;
+
+	bool is_project_all_cols;
 } qep;
 
 void qep_destroy(qep *p);
