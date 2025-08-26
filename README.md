@@ -68,3 +68,5 @@ select {* | columnExpression [as newName] [,...]}
 from {tableName [alias] [,...]} 
 [where condition]
 ```
+
+![demo](./imgs/demo.gif)
